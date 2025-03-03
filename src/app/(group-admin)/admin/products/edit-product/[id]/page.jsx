@@ -1,13 +1,13 @@
 "use client";
-import React, {useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { axiosInstance, titleToSlug } from "@/app/library/helper";
 import PageBreadcrumbs from "@/components/admin/PageBreadcrumbs";
 import { FaRedo, FaPlus } from "react-icons/fa";
 import { useParams, useRouter } from "next/navigation";
 import Select from "react-select";
-import axios from "axios";
 import ImageUploader from "@/components/admin/ImageUploader";
+import JoditEditor from "jodit-react";
 
 const EditProduct = () => {
   const router = useRouter();
@@ -20,26 +20,21 @@ const EditProduct = () => {
   const originalPriceRef = useRef();
   const discountedPriceRef = useRef();
   const discountPercentRef = useRef();
-  const [imageFiles,setImageFiles] = useState();
+  const [imageFiles, setImageFiles] = useState();
   const [message, setMessage] = useState(false);
   const [colors, setColors] = useState([]);
   const [colorOption, setColorOptions] = useState([]);
   const [currentCategory, setCurrentCategory] = useState(null);
+  const editor = useRef(null);
+  const [content, setContent] = useState("");
+
+  const config = {
+    placehodler: "Start typing...",
+  };
 
   const nameHandler = async () => {
     // Convert the name to a slug
     slugRef.current.value = titleToSlug(nameRef.current.value);
-
-    // axiosInstance
-    //   .get(`/category/get-category/${nameRef.current.value}`)
-    //   .then((response) => {
-    //     if (response.data.flag === 1) {
-    //       setMessage(true);
-    //     } else setMessage(false);
-    //   })
-    //   .catch((error) => {
-    //     console.log(error.message);
-    //   });
   };
 
   const selectCategoryHandler = (options) => {
@@ -57,21 +52,25 @@ const EditProduct = () => {
 
   useEffect(() => {
     getCategories();
-    
   }, []);
 
   useEffect(() => {
     if (id) {
       axiosInstance.get(`/product/${id}`).then((response) => {
-        console.log("idssss",id)
+        console.log("idssss", id);
         if (response.data.flag === 1) {
           setProduct(response.data.product);
-          setCurrentCategory({value:response.data.product?.category._id,label:response.data.product?.category.name})
+          setCurrentCategory({
+            value: response.data.product?.category._id,
+            label: response.data.product?.category.name,
+          });
           const c_d = [];
           for (let col of response.data.product.color) {
             c_d.push({ value: col?._id, label: col?.name });
           }
           setColors(c_d);
+          editor.current.value = response.data.product.des;
+          setContent(response.data.product.des);
           nameRef.current.value = response.data.product.name;
           slugRef.current.value = response.data.product.slug;
           originalPriceRef.current.value = response.data.product.original_price;
@@ -97,18 +96,16 @@ const EditProduct = () => {
 
   const editProductHandler = async (e) => {
     e.preventDefault();
-    console.log(categories);
-
-    // if (!name || !slug) {
-    //   toast.error("Please fill all the fields.");
-    //   return;
-    // }
 
     const formData = new FormData();
     formData.append("name", e.target.name.value);
     formData.append("slug", e.target.slug.value);
     formData.append("category", e.target.category.value);
-    formData.append("colors", JSON.stringify(colors.map(color_value => color_value.value)));
+    formData.append(
+      "colors",
+      JSON.stringify(colors.map((color_value) => color_value.value))
+    );
+    formData.append("description", content);
     formData.append("originalPrice", e.target.originalPrice.value);
     formData.append("discountedPrice", e.target.discountedPrice.value);
     formData.append("discountPercent", e.target.discountPercent.value);
@@ -194,7 +191,7 @@ const EditProduct = () => {
                 value: category._id,
                 label: category.name,
               }))}
-              onChange={(options)=>setCurrentCategory(options)}
+              onChange={(options) => setCurrentCategory(options)}
               value={currentCategory}
             />
           </div>
@@ -215,6 +212,23 @@ const EditProduct = () => {
                 value: color._id,
                 label: color.name,
               }))}
+            />
+          </div>
+          <div className="mb-5 w-full col-span-2">
+            <label
+              htmlFor="description"
+              className="block mb-2 text-sm text-gray-900 dark:text-white font-bold"
+            >
+              Description
+            </label>
+            <JoditEditor
+              name="description"
+              ref={editor}
+              value={content}
+              config={config}
+              tabIndex={1} // tabIndex of textarea
+              onBlur={(newContent) => setContent(newContent)} // preferred to use only this option to update the content for performance reasons
+              onChange={(newContent) => {}}
             />
           </div>
           <div className="mb-5 w-full grid grid-cols-3 col-span-2 gap-3">
@@ -272,38 +286,29 @@ const EditProduct = () => {
               />
             </div>
           </div>
-     {
-      !product ? null :      <div className="mb-5 w-full">
-      <label
-        htmlFor="name"
-        className="block mb-2 text-sm text-gray-900 dark:text-white font-bold"
-      >
-        Upload Image
-      </label>
-      <ImageUploader setImageFiles={setImageFiles} imageUrl={`${process.env.NEXT_PUBLIC_BASE_URL}/images/products/${product.image}`} />
-    </div> 
-     }
+          {!product ? null : (
+            <div className="mb-5 w-full">
+              <label
+                htmlFor="name"
+                className="block mb-2 text-sm text-gray-900 dark:text-white font-bold"
+              >
+                Upload Image
+              </label>
+              <ImageUploader
+                setImageFiles={setImageFiles}
+                imageUrl={`${process.env.NEXT_PUBLIC_BASE_URL}/images/products/${product.image}`}
+              />
+            </div>
+          )}
         </div>
         <div className="text-end">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.target.form.reset();
-              setMessage(false);
-            }}
-            className="focus:outline-none  text-white bg-red-700 hover:bg-red-800 font-medium rounded-lg text-sm px-5 py-2 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700"
-          >
-            <FaRedo className="inline-block mr-2" />
-            Reset
-          </button>
           <button
             type="submit"
             className={`text-white bg-blue-700 hover:bg-blue-800 focus:outline-none  font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 ${
               message && "opacity-[0.3] cursor-not-allowed"
             } `}
           >
-            <FaPlus className={`inline-block mr-2`} />
-            edit
+            Update
           </button>
         </div>
       </form>

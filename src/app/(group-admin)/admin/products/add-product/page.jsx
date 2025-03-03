@@ -7,6 +7,7 @@ import { FaRedo, FaPlus } from "react-icons/fa";
 import Select from "react-select";
 import ImageUploader from "@/components/admin/ImageUploader";
 import { useRouter } from "next/navigation";
+import JoditEditor from "jodit-react";
 
 const AddProduct = () => {
   const [categories, setCategories] = useState([]);
@@ -14,6 +15,11 @@ const AddProduct = () => {
   const [colorOptions, setColorOptions] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
   const router = useRouter();
+  const editor = useRef(null);
+  const [content, setContent] = useState("");
+  const config = {
+    placeholder:"Start typing..."
+  };
 
   const getData = async () => {
     const categoriesData = await axiosInstance.get("/category");
@@ -71,6 +77,7 @@ const AddProduct = () => {
     formData.append("slug", e.target.slug.value);
     formData.append("category", e.target.category.value);
     formData.append("colors", JSON.stringify(colorOptions));
+    formData.append("description", content);
     formData.append("originalPrice", e.target.originalPrice.value);
     formData.append("discountedPrice", e.target.discountedPrice.value);
     formData.append("discountPercent", e.target.discountPercent.value);
@@ -187,6 +194,14 @@ const AddProduct = () => {
             >
               Description
             </label>
+            <JoditEditor
+              ref={editor}
+              value={content}
+              config={config}
+              tabIndex={1} // tabIndex of textarea
+              onBlur={(newContent) => setContent(newContent)} // preferred to use only this option to update the content for performance reasons
+              onChange={(newContent) => {}}
+            />
           </div>
 
           <div className="mb-5 w-full grid grid-cols-3 col-span-2 gap-3">
