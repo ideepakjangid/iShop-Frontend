@@ -191,7 +191,6 @@ const getTrashAdmins = async()=>{
 
 export {
   getCategories,
-  addCategory,
   getTrashCategories,
   getColors,
   getColorTrash,

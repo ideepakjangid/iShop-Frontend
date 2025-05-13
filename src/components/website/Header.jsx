@@ -132,7 +132,7 @@ const Header = () => {
                     } `}
                   >
                     STORE
-                    <div className="w-full z-50 cursor-default max-h-[325px] absolute top-100 left-0 border p-8 invisible transition-opacity duration-500 opacity-0 group-hover:opacity-100 group-hover:visible flex justify-between bg-white ">
+                    {/* <div className="w-full z-50 cursor-default max-h-[325px] absolute top-100 left-0 border p-8 invisible transition-opacity duration-500 opacity-0 group-hover:opacity-100 group-hover:visible flex justify-between bg-white ">
                       <div>
                         <h2 className="mb-4 text-[18px] text-[#C1C8CE] ">
                           Accessories
@@ -176,7 +176,7 @@ const Header = () => {
                           <li>Cable & Docks</li>
                         </ul>
                       </div>
-                    </div>
+                    </div> */}
                   </li>
                 </Link>
                 <Link href={"/category/iphone"}>
@@ -254,13 +254,13 @@ const Header = () => {
         </div>
         <div className="text-white flex justify-between items-center mt-10 pb-2 border-b">
           <Link href={"/cart"}>
-            <div className="flex gap-2 items-center text-[14px]">
+            <div onClick={() => setMobileMenuOpen(false)} className="flex gap-2 items-center text-[14px]">
               <Image src={BagIcon} className="invert" alt="BagIcon" />{" "}
               <span>{cart?.items?.length} items</span>{" "}
               <span className="text-[#929292]">${cart.final_total}</span>
             </div>
           </Link>
-          <div className="flex gap-2 items-center text-[14px]">
+          <div onClick={() => setMobileMenuOpen(false)} className="flex gap-2 items-center text-[14px]">
            {
             user ?  <Link className="flex gap-2" href={"/my-profile"}>
             <Image src={ProfileIcon} className="invert" alt="ProfileIcon" />{" "}
